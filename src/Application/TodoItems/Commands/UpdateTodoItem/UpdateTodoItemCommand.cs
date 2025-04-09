@@ -12,6 +12,8 @@ public record UpdateTodoItemCommand : IRequest
     public string? Title { get; init; }
 
     public bool Done { get; init; }
+
+    public string? BackgroundColor { get; init; }
 }
 
 public class UpdateTodoItemCommandHandler : IRequestHandler<UpdateTodoItemCommand>
@@ -35,6 +37,8 @@ public class UpdateTodoItemCommandHandler : IRequestHandler<UpdateTodoItemComman
 
         entity.Title = request.Title;
         entity.Done = request.Done;
+        entity.BackgroundColor = request.BackgroundColor ?? entity.BackgroundColor;
+
 
         await _context.SaveChangesAsync(cancellationToken);
 
