@@ -810,6 +810,7 @@ export class UpdateTodoItemCommand implements IUpdateTodoItemCommand {
     title?: string | undefined;
     done?: boolean;
     backgroundColor?: string | undefined;
+    tags?: string[];
 
     constructor(data?: IUpdateTodoItemCommand) {
         if (data) {
@@ -826,6 +827,11 @@ export class UpdateTodoItemCommand implements IUpdateTodoItemCommand {
             this.title = _data["title"];
             this.done = _data["done"];
             this.backgroundColor = _data["backgroundColor"];
+            if (Array.isArray(_data["tags"])) {
+                this.tags = [] as any;
+                for (let item of _data["tags"])
+                    this.tags!.push(item);
+            }
         }
     }
 
@@ -842,6 +848,11 @@ export class UpdateTodoItemCommand implements IUpdateTodoItemCommand {
         data["title"] = this.title;
         data["done"] = this.done;
         data["backgroundColor"] = this.backgroundColor;
+        if (Array.isArray(this.tags)) {
+            data["tags"] = [];
+            for (let item of this.tags)
+                data["tags"].push(item);
+        }
         return data;
     }
 }
@@ -851,6 +862,7 @@ export interface IUpdateTodoItemCommand {
     title?: string | undefined;
     done?: boolean;
     backgroundColor?: string | undefined;
+    tags?: string[];
 }
 
 export class UpdateTodoItemDetailCommand implements IUpdateTodoItemDetailCommand {

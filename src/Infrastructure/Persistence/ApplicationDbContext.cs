@@ -34,6 +34,9 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>, 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+          builder.Entity<TodoItem>()
+            .HasMany(t => t.Tags)
+            .WithMany(t => t.TodoItems);
 
         base.OnModelCreating(builder);
     }
