@@ -11,13 +11,13 @@
       <div class="clearfix">
         <h2 class="float-start">Lists</h2>
         <button class="btn btn-default float-end" title="New List..."
-          (click)="showNewListModal(newListModalTemplate)">
+                (click)="showNewListModal(newListModalTemplate)">
           <i class="bi bi-journal-plus"></i>
         </button>
       </div>
       <ul class="list-group">
         <li *ngFor="let list of lists; index as i" class="list-group-item"
-          [ngClass]="{ 'active': selectedList == list }" (click)="selectedList = list">
+            [ngClass]="{ 'active': selectedList == list }" (click)="selectedList = list">
           <div class="clearfix">
             <div class="float-start">
               {{ list.title }}
@@ -32,8 +32,33 @@
     <div class="col-sm-8" *ngIf="selectedList">
       <div class="clearfix">
         <h2 class="float-start">{{ selectedList.title }}</h2>
+
+        <!-- Feature 2: Search and tag filters -->
+        <div class="mb-3">
+          <input type="text"
+                 class="form-control mb-2"
+                 placeholder="Search by title..."
+                 [(ngModel)]="searchTerm"
+                 (input)="applyFilters()" />
+
+          <div>
+            <span *ngFor="let tag of popularTags"
+                  class="badge me-1"
+                  [ngClass]="{ 'bg-primary': !selectedTags.includes(tag), 'bg-success': selectedTags.includes(tag) }"
+                  style="cursor:pointer"
+                  (click)="toggleTagFilter(tag)">
+              {{ tag }}
+            </span>
+
+            <button *ngIf="selectedTags.length > 0 || searchTerm"
+                    class="btn btn-sm btn-outline-secondary ms-2"
+                    (click)="searchTerm=''; selectedTags=[]; applyFilters();">
+              Clear Filters
+            </button>
+          </div>
+        </div>
         <button id="listOptions" class="btn btn-default float-end" title="List Options..."
-          (click)="showListOptionsModal(listOptionsModalTemplate)">
+                (click)="showListOptionsModal(listOptionsModalTemplate)">
           <i class="bi bi-three-dots-vertical"></i>
         </button>
       </div>
@@ -68,6 +93,13 @@
           <button class="btn btn-default">Add Item...</button>
         </li>
       </ul>
+    </div>
+
+    <div class="mb-2">
+      <span *ngFor="let tag of popularTags" class="badge bg-primary me-1" style="cursor:pointer"
+            (click)="toggleTagFilter(tag)">
+        {{ tag }}
+      </span>
     </div>
   </div>
 </div>

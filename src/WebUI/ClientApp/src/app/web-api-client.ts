@@ -1084,6 +1084,7 @@ export class TodoItemDto implements ITodoItemDto {
     priority?: number;
     note?: string | undefined;
     backgroundColor?: string;
+    tags?: string[];
 
     constructor(data?: ITodoItemDto) {
         if (data) {
@@ -1103,6 +1104,11 @@ export class TodoItemDto implements ITodoItemDto {
             this.priority = _data["priority"];
             this.note = _data["note"];
             this.backgroundColor = _data["backgroundColor"];
+            if (Array.isArray(_data["tags"])) {
+                this.tags = [] as any;
+                for (let item of _data["tags"])
+                    this.tags!.push(item);
+            }
         }
     }
 
@@ -1122,6 +1128,11 @@ export class TodoItemDto implements ITodoItemDto {
         data["priority"] = this.priority;
         data["note"] = this.note;
         data["backgroundColor"] = this.backgroundColor;
+        if (Array.isArray(this.tags)) {
+            data["tags"] = [];
+            for (let item of this.tags)
+                data["tags"].push(item);
+        }
         return data;
     }
 }
@@ -1134,6 +1145,7 @@ export interface ITodoItemDto {
     priority?: number;
     note?: string | undefined;
     backgroundColor?: string;
+    tags?: string[];
 }
 
 export class CreateTodoListCommand implements ICreateTodoListCommand {

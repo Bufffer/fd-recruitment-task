@@ -8,16 +8,26 @@ import {
   CreateTodoItemCommand, UpdateTodoItemDetailCommand,
   UpdateTodoItemCommand
 } from '../web-api-client';
-
+interface TodoItemWithTags extends TodoItemDto {
+    tags: string[];
+}
 @Component({
   selector: 'app-todo-component',
   templateUrl: './todo.component.html',
   styleUrls: ['./todo.component.scss']
 })
+
 export class TodoComponent implements OnInit {
   debug = false;
   deleting = false;
   deleteCountDown = 0;
+
+  // for feature 2
+  searchTerm: string = '';
+  selectedTags: string[] = [];
+  popularTags: string[] = [];
+  filteredItems: TodoItemDto[] = [];
+
   deleteCountDownInterval: any;
   lists: TodoListDto[];
   priorityLevels: PriorityLevelDto[];
@@ -44,18 +54,38 @@ export class TodoComponent implements OnInit {
     private fb: FormBuilder
   ) { }
 
-  ngOnInit(): void {
-    this.listsClient.get().subscribe(
-      result => {
-        this.lists = result.lists;
-        this.priorityLevels = result.priorityLevels;
-        if (this.lists.length) {
-          this.selectedList = this.lists[0];
-        }
-      },
-      error => console.error(error)
-    );
-  }
+
+    ngOnInit(): void {
+        this.listsClient.get().subscribe(
+            result => {
+                this.lists = result.lists;
+                this.priorityLevels = result.priorityLevels;
+                if (this.lists.length) {
+                    this.selectedList = this.lists[0];
+                }
+
+                // Popular tag hesaplaması
+                const tagMap: { [key: string]: number } = {};
+
+                this.lists.forEach(list => {
+                    (list.items as TodoItemWithTags[]).forEach(item => {
+                        (item.tags || []).forEach(tag => {
+                            tagMap[tag] = (tagMap[tag] || 0) + 1;
+                        });
+                    });
+                });
+
+                this.popularTags = Object.entries(tagMap)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5)
+                    .map(entry => entry[0]);
+
+                this.applyFilters();
+            },
+            error => console.error(error)
+        );
+    }
+
 
   // Lists
   remainingItems(list: TodoListDto): number {
@@ -270,7 +300,32 @@ export class TodoComponent implements OnInit {
       );
     }
   }
+  // for feature 2
+  // ------------------------
 
+    applyFilters(): void {
+        if (!this.selectedList) return;
+
+        this.filteredItems = (this.selectedList.items as TodoItemWithTags[]).filter(item => {
+            const matchesSearch = !this.searchTerm || item.title?.toLowerCase().includes(this.searchTerm.toLowerCase());
+            const matchesTags = this.selectedTags.length === 0 || item.tags?.some(tag => this.selectedTags.includes(tag));
+            return matchesSearch && matchesTags;
+        });
+    }
+
+
+
+  toggleTagFilter(tag: string): void {
+    if (this.selectedTags.includes(tag)) {
+      this.selectedTags = this.selectedTags.filter(t => t !== tag);
+    } else {
+      this.selectedTags.push(tag);
+    }
+
+    this.applyFilters();
+  }
+
+  // ------------------------
   stopDeleteCountDown() {
     clearInterval(this.deleteCountDownInterval);
     this.deleteCountDown = 0;
