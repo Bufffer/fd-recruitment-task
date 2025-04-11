@@ -11,5 +11,5 @@ public class Tag
     public int Id { get; set; }
     public string Name { get; set; }
 
-    public ICollection<TodoItem> TodoItems { get; set; } = new List<TodoItem>();
+    public List<TodoItem> TodoItems { get; set; } = new();
 }

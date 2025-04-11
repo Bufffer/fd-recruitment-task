@@ -1,5 +1,6 @@
 import { Component, TemplateRef, OnInit } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
+
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import {
   TodoListsClient, TodoItemsClient,
@@ -20,6 +21,9 @@ interface TodoItemWithTags extends TodoItemDto {
 export class TodoComponent implements OnInit {
   debug = false;
   deleting = false;
+    // users can add tags 
+    tagInput: string = '';
+
   deleteCountDown = 0;
 
   // for feature 2
@@ -31,7 +35,17 @@ export class TodoComponent implements OnInit {
   deleteCountDownInterval: any;
   lists: TodoListDto[];
   priorityLevels: PriorityLevelDto[];
-  selectedList: TodoListDto;
+  /* selectedList: TodoListDto;*/
+  private _selectedList: TodoListDto;
+
+  get selectedList(): TodoListDto {
+    return this._selectedList;
+  }
+
+  set selectedList(value: TodoListDto) {
+    this._selectedList = value;
+    this.applyFilters(); // Yeni liste seçildiğinde filtreyi uygula
+  }
   selectedItem: TodoItemDto;
   newListEditor: any = {};
   listOptionsEditor: any = {};
@@ -63,6 +77,7 @@ export class TodoComponent implements OnInit {
                 if (this.lists.length) {
                     this.selectedList = this.lists[0];
                 }
+            //this.debug = true; // i use for only dev mod
 
                 // Popular tag hesaplaması
                 const tagMap: { [key: string]: number } = {};
@@ -171,6 +186,10 @@ export class TodoComponent implements OnInit {
     this.selectedItem = item;
     this.itemDetailsFormGroup.patchValue(this.selectedItem);
 
+    if (!this.selectedItem.tags) {
+      this.selectedItem.tags = [];
+    }
+
     this.itemDetailsModalRef = this.modalService.show(template);
     this.itemDetailsModalRef.onHidden.subscribe(() => {
         this.stopDeleteCountDown();
@@ -191,20 +210,39 @@ export class TodoComponent implements OnInit {
     });
   }
 
+  // add tags and remove tags
+  addTagToItem(item: TodoItemDto): void {
+    const tag = this.tagInput.trim();
+    if (!tag) return;
+
+    item.tags = item.tags || [];
+    if (!item.tags.includes(tag)) {
+      item.tags.push(tag);
+      this.updateItemDetails();  
+    }
+
+    this.tagInput = '';
+  }
+  // ------------------
+  removeTagFromItem(item: TodoItemDto, tagToRemove: string): void {
+    item.tags = item.tags.filter(tag => tag !== tagToRemove);
+    this.updateItemDetails(); // send to backend
+  }
   updateItemDetails(): void {
-    const item = new UpdateTodoItemDetailCommand(this.itemDetailsFormGroup.value);
+    const formValue = this.itemDetailsFormGroup.value;
+    const item = new UpdateTodoItemDetailCommand({
+      ...formValue,
+      backgroundColor: this.selectedItem.backgroundColor,
+      tags: this.selectedItem.tags || [] 
+    });
     this.itemsClient.updateItemDetails(this.selectedItem.id, item).subscribe(
       () => {
-        if (this.selectedItem.listId !== item.listId) {
-          this.selectedList.items = this.selectedList.items.filter(
-            i => i.id !== this.selectedItem.id
-          );
-          const listIndex = this.lists.findIndex(
-            l => l.id === item.listId
-          );
-          this.selectedItem.listId = item.listId;
-          this.lists[listIndex].items.push(this.selectedItem);
-        }
+         if (this.selectedItem.listId !== item.listId) {
+        this.selectedList.items = this.selectedList.items.filter(i => i.id !== this.selectedItem.id);
+        const listIndex = this.lists.findIndex(l => l.id === item.listId);
+        this.selectedItem.listId = item.listId;
+        this.lists[listIndex].items.push(this.selectedItem);
+      }
 
         this.selectedItem.priority = item.priority;
         this.selectedItem.note = item.note;
@@ -227,6 +265,7 @@ export class TodoComponent implements OnInit {
     this.selectedList.items.push(item);
     const index = this.selectedList.items.length - 1;
     this.editItem(item, 'itemTitle' + index);
+    this.applyFilters();
   }
 
   editItem(item: TodoItemDto, inputId: string): void {
@@ -312,8 +351,6 @@ export class TodoComponent implements OnInit {
             return matchesSearch && matchesTags;
         });
     }
-
-
 
   toggleTagFilter(tag: string): void {
     if (this.selectedTags.includes(tag)) {

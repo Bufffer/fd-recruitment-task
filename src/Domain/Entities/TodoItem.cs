@@ -16,9 +16,6 @@ public class TodoItem : BaseAuditableEntity
     public PriorityLevel Priority { get; set; }
 
 
-
-
-
     public DateTime? Reminder { get; set; }
     public ICollection<Tag> Tags { get; set; } = new List<Tag>();
 
