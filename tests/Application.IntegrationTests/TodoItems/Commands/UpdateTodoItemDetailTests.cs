@@ -1,4 +1,7 @@
-﻿using FluentAssertions;
+﻿using System.Collections.Generic;
+using FluentAssertions;
+using Microsoft.EntityFrameworkCore.ValueGeneration;
+using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
 using Todo_App.Application.Common.Exceptions;
 using Todo_App.Application.TodoItems.Commands.CreateTodoItem;
@@ -14,6 +17,38 @@ using static Testing;
 
 public class UpdateTodoItemDetailTests : BaseTestFixture
 {
+
+    //bgcolor-test
+    [Test]
+    public async Task ShouldUpdateBackgroundColor()
+    {
+        var userId = await RunAsDefaultUserAsync();
+        var listId = await SendAsync(new CreateTodoListCommand
+        {
+            Title = "List with color"
+        });
+
+        var itemId = await SendAsync(new CreateTodoItemCommand
+        {
+            ListId = listId,
+            Title = "Colorful item"
+        });
+
+        var command = new UpdateTodoItemDetailCommand
+        {
+            Id = itemId,
+            ListId = listId,
+            Note = "Updated note",
+            Priority = PriorityLevel.Low,
+            BackgroundColor = "#ffcc00"
+        };
+
+        await SendAsync(command);
+
+        var item = await FindAsync<TodoItem>(itemId);
+        item.Should().NotBeNull();
+        item!.BackgroundColor.Should().Be("#ffcc00");
+    }
     [Test]
     public async Task ShouldRequireValidTodoItemId()
     {
