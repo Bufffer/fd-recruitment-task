@@ -15,6 +15,45 @@ using static Testing;
 public class UpdateTodoItemDetailTests : BaseTestFixture
 {
     [Test]
+    public async Task ShouldAddAndRemoveTagsToTodoItem()
+    {
+        var userId = await RunAsDefaultUserAsync();
+
+        var listId = await SendAsync(new CreateTodoListCommand
+        {
+            Title = "Tag Test List"
+        });
+
+        var itemId = await SendAsync(new CreateTodoItemCommand
+        {
+            ListId = listId,
+            Title = "Tagged Item"
+        });
+
+        var updateCommand = new UpdateTodoItemDetailCommand
+        {
+            Id = itemId,
+            ListId = listId,
+            Tags = new List<string> { "urgent", "work" }
+        };
+
+        await SendAsync(updateCommand);
+
+        var item = await FindTodoItemWithTagsAsync(itemId);
+        item.Should().NotBeNull();
+        item!.Tags.Select(t => t.Name).Should().Contain("urgent").And.Contain("work");
+
+
+        // Remove a tag and update again
+        updateCommand.Tags = new List<string> { "urgent" };
+        await SendAsync(updateCommand);
+
+        var updatedItem = await FindTodoItemWithTagsAsync(itemId);
+        updatedItem!.Tags.Select(t => t.Name).Should().Contain("urgent").And.NotContain("work");
+
+    }
+
+    [Test]
     public async Task ShouldRequireValidTodoItemId()
     {
         var command = new UpdateTodoItemCommand { Id = 99, Title = "New Title" };

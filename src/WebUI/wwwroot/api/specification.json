@@ -469,6 +469,16 @@
           },
           "done": {
             "type": "boolean"
+          },
+          "backgroundColor": {
+            "type": "string",
+            "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -490,6 +500,15 @@
           "note": {
             "type": "string",
             "nullable": true
+          },
+          "backgroundColor": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -591,6 +610,15 @@
           "note": {
             "type": "string",
             "nullable": true
+          },
+          "backgroundColor": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
