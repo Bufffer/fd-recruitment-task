@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Respawn;
+using Todo_App.Domain.Entities;
 using Todo_App.Infrastructure.Identity;
 using Todo_App.Infrastructure.Persistence;
 
@@ -16,7 +17,7 @@ public partial class Testing
 {
     private static WebApplicationFactory<Program> _factory = null!;
     private static IConfiguration _configuration = null!;
-    private static IServiceScopeFactory _scopeFactory = null!;
+    public static IServiceScopeFactory _scopeFactory = null!;
     private static Checkpoint _checkpoint = null!;
     private static string? _currentUserId;
 
@@ -129,8 +130,22 @@ public partial class Testing
         return await context.Set<TEntity>().CountAsync();
     }
 
+    // 
+    public static async Task<TodoItem?> FindTodoItemWithTagsAsync(int id)
+    {
+        using var scope = _scopeFactory.CreateScope();
+
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        return await context.TodoItems
+            .Include(t => t.Tags)
+            .FirstOrDefaultAsync(t => t.Id == id);
+    }
+
     [OneTimeTearDown]
     public void RunAfterAnyTests()
     {
     }
+
+
 }

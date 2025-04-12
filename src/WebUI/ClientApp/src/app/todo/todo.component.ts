@@ -5,7 +5,8 @@ import {
   TodoListsClient, TodoItemsClient,
   TodoListDto, TodoItemDto, PriorityLevelDto,
   CreateTodoListCommand, UpdateTodoListCommand,
-  CreateTodoItemCommand, UpdateTodoItemDetailCommand
+  CreateTodoItemCommand, UpdateTodoItemDetailCommand,
+  UpdateTodoItemCommand
 } from '../web-api-client';
 
 @Component({
@@ -143,6 +144,20 @@ export class TodoComponent implements OnInit {
     this.itemDetailsModalRef = this.modalService.show(template);
     this.itemDetailsModalRef.onHidden.subscribe(() => {
         this.stopDeleteCountDown();
+    });
+  }
+
+  onColorChange(item: TodoItemDto): void {
+    const command = new UpdateTodoItemCommand({
+      id: item.id,
+      title: item.title,
+      done: item.done,
+      backgroundColor: item.backgroundColor
+    });
+
+    this.itemsClient.update(item.id!, command).subscribe({
+      next: () => console.log('Color updated'),
+      error: (err) => console.error('Update failed', err)
     });
   }
 
