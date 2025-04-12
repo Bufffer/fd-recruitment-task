@@ -45,40 +45,22 @@ public class UpdateTodoItemDetailCommandHandler : IRequestHandler<UpdateTodoItem
         entity.Priority = request.Priority;
         entity.Note = request.Note;
 
-        //if (request.Tags != null)
-        //{
-        //    var existingTags = await _context.Tags
-        //        .Where(t => request.Tags.Contains(t.Name))
-        //        .ToListAsync(cancellationToken);
-
-        //    var newTagNames = request.Tags.Except(existingTags.Select(t => t.Name)).ToList();
-
-        //    foreach (var tagName in newTagNames)
-        //    {
-        //        var newTag = new Tag { Name = tagName };
-        //        _context.Tags.Add(newTag);
-        //        existingTags.Add(newTag);
-        //    }
-
-        //    entity.Tags = existingTags;
-        //}
-
         if (request.Tags != null)
         {
-            entity.Tags = entity.Tags
-            .Where(t => request.Tags.Contains(t.Name))
-            .ToList();
+            var existingTags = await _context.Tags
+                .Where(t => request.Tags.Contains(t.Name))
+                .ToListAsync(cancellationToken);
 
-            // Add missing tags
-            foreach (var tagName in request.Tags)
+            var newTagNames = request.Tags.Except(existingTags.Select(t => t.Name)).ToList();
+
+            foreach (var tagName in newTagNames)
             {
-                if (!entity.Tags.Any(t => t.Name == tagName))
-                {
-                    var tag = await _context.Tags.FirstOrDefaultAsync(t => t.Name == tagName, cancellationToken)
-                              ?? new Tag { Name = tagName };
-                    entity.Tags.Add(tag);
-                }
+                var newTag = new Tag { Name = tagName };
+                _context.Tags.Add(newTag);
+                existingTags.Add(newTag);
             }
+
+            entity.Tags = existingTags;
         }
 
 
